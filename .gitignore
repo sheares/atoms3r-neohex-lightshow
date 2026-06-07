@@ -4,3 +4,5 @@ sdkconfig.old
 *.bin
 *.elf
 *.map
+.DS_Store
+.cache/

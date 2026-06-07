@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "lightshow.h"
+#include "imu.h"
 
 #define BUTTON_GPIO     41      /* ATOM S3R built-in button */
 #define TICK_MS         20      /* ~50 fps */
@@ -64,9 +65,16 @@ void app_main(void)
     strip = setup_led_strip();
     lightshow_init(strip);
 
+    if (imu_init() != 0) {
+        ESP_LOGW(TAG, "IMU unavailable — tilt colour control disabled");
+    }
+
+    float ax = 0.0f, ay = 0.0f, az = 1.0f;
     uint32_t t = 0;
     while (1) {
-        lightshow_tick(strip, current_effect, t);
+        imu_read_accel(&ax, &ay, &az);
+        uint16_t hue_offset = imu_hue_offset(ax, ay, az);
+        lightshow_tick(strip, current_effect, t, hue_offset);
         vTaskDelay(pdMS_TO_TICKS(TICK_MS));
         t += TICK_MS;
     }

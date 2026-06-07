@@ -24,4 +24,4 @@ typedef enum {
 } effect_t;
 
 void lightshow_init(led_strip_handle_t strip);
-void lightshow_tick(led_strip_handle_t strip, effect_t effect, uint32_t tick_ms);
+void lightshow_tick(led_strip_handle_t strip, effect_t effect, uint32_t tick_ms, uint16_t hue_offset);

@@ -20,27 +20,27 @@ void lightshow_init(led_strip_handle_t strip)
     led_strip_refresh(strip);
 }
 
-static void effect_rainbow_ripple(led_strip_handle_t strip, uint32_t t)
+static void effect_rainbow_ripple(led_strip_handle_t strip, uint32_t t, uint16_t hue_offset)
 {
     for (int i = 0; i < NUM_LEDS; i++) {
-        uint16_t hue = (uint16_t)((t / 10 + RING_OF[i] * 40) % 360);
+        uint16_t hue = (uint16_t)((t / 10 + RING_OF[i] * 40 + hue_offset) % 360);
         led_strip_set_pixel_hsv(strip, i, hue, 220, 13);
     }
     led_strip_refresh(strip);
 }
 
-static void effect_breathe(led_strip_handle_t strip, uint32_t t)
+static void effect_breathe(led_strip_handle_t strip, uint32_t t, uint16_t hue_offset)
 {
     float phase = (float)(t % 2000) / 2000.0f * 2.0f * (float)M_PI;
     uint8_t brightness = (uint8_t)((sinf(phase) * 0.5f + 0.5f) * 13.0f);
-    uint16_t hue = (t / 20) % 360;
+    uint16_t hue = (t / 20 + hue_offset) % 360;
     for (int i = 0; i < NUM_LEDS; i++) {
         led_strip_set_pixel_hsv(strip, i, hue, 240, brightness);
     }
     led_strip_refresh(strip);
 }
 
-static void effect_sparkle(led_strip_handle_t strip, uint32_t t)
+static void effect_sparkle(led_strip_handle_t strip, uint32_t t, uint16_t hue_offset)
 {
     static uint8_t r[NUM_LEDS], g[NUM_LEDS], b[NUM_LEDS];
     static uint32_t last_t = 0;
@@ -59,7 +59,7 @@ static void effect_sparkle(led_strip_handle_t strip, uint32_t t)
     }
     for (int n = 0; n < 3; n++) {
         int idx = esp_random() % NUM_LEDS;
-        uint16_t hue = (uint16_t)(esp_random() % 360);
+        uint16_t hue = (uint16_t)((esp_random() % 360 + hue_offset) % 360);
         /* HSV->RGB inline for sparkle state cache */
         uint8_t rr, gg, bb;
         uint16_t region = hue / 60;
@@ -80,10 +80,10 @@ static void effect_sparkle(led_strip_handle_t strip, uint32_t t)
     led_strip_refresh(strip);
 }
 
-static void effect_ring_chase(led_strip_handle_t strip, uint32_t t)
+static void effect_ring_chase(led_strip_handle_t strip, uint32_t t, uint16_t hue_offset)
 {
     uint8_t active = (t / 300) % 4;
-    uint16_t hue   = (t / 15) % 360;
+    uint16_t hue   = (t / 15 + hue_offset) % 360;
     for (int i = 0; i < NUM_LEDS; i++) {
         if (RING_OF[i] == active) led_strip_set_pixel_hsv(strip, i, hue, 230, 13);
         else                      led_strip_set_pixel(strip, i, 0, 0, 0);
@@ -91,13 +91,13 @@ static void effect_ring_chase(led_strip_handle_t strip, uint32_t t)
     led_strip_refresh(strip);
 }
 
-void lightshow_tick(led_strip_handle_t strip, effect_t effect, uint32_t tick_ms)
+void lightshow_tick(led_strip_handle_t strip, effect_t effect, uint32_t tick_ms, uint16_t hue_offset)
 {
     switch (effect) {
-        case EFFECT_RAINBOW_RIPPLE: effect_rainbow_ripple(strip, tick_ms); break;
-        case EFFECT_BREATHE:        effect_breathe(strip, tick_ms);        break;
-        case EFFECT_SPARKLE:        effect_sparkle(strip, tick_ms);        break;
-        case EFFECT_RING_CHASE:     effect_ring_chase(strip, tick_ms);     break;
+        case EFFECT_RAINBOW_RIPPLE: effect_rainbow_ripple(strip, tick_ms, hue_offset); break;
+        case EFFECT_BREATHE:        effect_breathe(strip, tick_ms, hue_offset);        break;
+        case EFFECT_SPARKLE:        effect_sparkle(strip, tick_ms, hue_offset);        break;
+        case EFFECT_RING_CHASE:     effect_ring_chase(strip, tick_ms, hue_offset);     break;
         default: break;
     }
 }
